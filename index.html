@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5eefc">
+  <title>云朵账本</title>
+  <link rel="stylesheet" href="style.css"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+</head>
+<body>
+  <main>
+    <header><span class="brand">☁ 云朵账本</span><span class="badge">我的小小财富花园</span></header>
+    <section class="intro"><p>慢慢积攒，好好生活</p><h1>每一笔，都有生活的温度。</h1><p class="muted">在这里，照顾你的钱，也照顾自己的小心愿。</p></section>
+    <section class="overview" aria-label="财务概览">
+      <article class="card assets"><span>总资产</span><strong id="total-assets">¥ 0.00</strong><p id="account-summary">从添加第一个账户开始 ✨</p></article>
+      <article class="card spending"><span>本月支出</span><strong id="monthly-spending">¥ 0.00</strong><p id="month"></p></article>
+      <article class="card budget"><span>本月预算支出</span><strong id="budget-expense-total">尚未设置</strong><p id="budget-home-summary">给每个月留一点从容</p></article>
+    </section>
+    <section class="panel budget-panel" aria-labelledby="budget-title">
+      <h2 id="budget-title">每月收支预算 <span class="record-actions"><button id="copy-budget" type="button">复制到下一期</button><button id="add-budget" type="button">＋ 添加项目</button></span></h2>
+      <label class="budget-month-label">每期起始日（1–31，短月取月末）<input id="cycle-day" type="number" min="1" max="31" value="20"></label><button id="save-cycle" type="button">保存周期设置</button><p id="cycle-range" class="form-hint"></p><label class="budget-month-label">预算起始月份<input id="budget-month" type="month" required></label>
+      <div id="budget-summary" class="debt-summary"></div>
+      <p class="form-hint">预算用于规划，新增或删除项目不会改变账户余额，也不会生成实际收支记录。</p>
+      <p id="budget-warning" role="status"></p>
+      <div class="budget-columns"><div><h3>🌱 预算收入</h3><div id="budget-income-list"></div></div><div><h3>🌷 预算支出</h3><div id="budget-expense-list"></div></div></div>
+      <p id="budget-status" role="status"></p>
+    </section>
+    <section class="panel goals-panel" aria-labelledby="goals-title"><h2 id="goals-title">储蓄小心愿 <button id="add-goal" type="button">＋ 添加目标</button></h2><p class="form-hint">跟随关联账户余额更新，目标之间独立计算。</p><div id="goal-list"></div></section>
+    <section class="panel debt-panel" aria-labelledby="debt-title">
+      <h2 id="debt-title">待还负债 <button id="add-debt" type="button">＋ 添加负债</button></h2>
+      <div class="debt-summary"><p>待还合计<strong id="debt-total">¥ 0.00</strong></p><p>净资产（总资产 − 待还负债）<strong id="net-assets">¥ 0.00</strong></p></div>
+      <p class="form-hint">贷款存款仍属于账户余额；在这里单独记录欠款。保存负债不会扣减账户余额。日期提醒仅在打开账本时显示。</p>
+      <div id="debt-list"></div>
+      <p id="debt-status" role="status"></p>
+    </section>
+    <section class="details">
+      <article class="panel"><h2>我的账户 <button id="add-account" type="button">＋ 添加账户</button></h2><div id="account-list"></div></article>
+      <article class="panel"><h2>最近记录 <span class="record-actions"><button id="add-income" type="button">收入</button><button id="add-transfer" type="button">转账</button><button id="add-expense" type="button">＋ 记支出</button></span></h2><div id="record-list"></div></article>
+    </section>
+    <section class="panel tools-panel"><h2>照顾好你的账本 <span>☁</span></h2>
+<div class="tool-actions"><button id="export-backup" type="button">导出完整备份</button><button id="import-backup" type="button">导入备份</button><input id="backup-file" type="file" accept=".json,application/json" hidden><button id="manage-categories" type="button">分类与图标</button><button id="install-app" type="button">安装账本</button></div>
+<p class="form-hint">备份包含余额、记录、照片、预算、目标、负债和设置。文件仅保存在你的电脑，请妥善保管。</p><p id="backup-status" role="status"></p><p id="offline-status" class="form-hint">正在准备离线使用…</p></section>
+<p id="status" role="status" aria-live="polite"></p><footer>数据保存在当前浏览器 · 清除浏览器数据会移除账本</footer>
+  </main>
+  <dialog id="account-dialog" aria-labelledby="dialog-title">
+    <form id="account-form">
+      <h2 id="dialog-title">给余额安个家</h2>
+      <label>账户类型<select id="account-type" required><option value="wechat">微信钱包</option><option value="alipay">支付宝余额</option><option value="pocket">小荷包</option><option value="yuebao">余额宝</option><option value="fund">基金</option><option value="bank">银行卡</option></select></label>
+      <label>账户名称（已默认填写，可修改）<input id="account-name" maxlength="40" required value="微信钱包" placeholder="例如：微信钱包、旅行小荷包、招商银行卡"></label>
+      <label>当前余额（元）<input id="account-balance" type="text" inputmode="decimal" required placeholder="0.00" aria-describedby="balance-hint"></label>
+      <p class="form-hint" id="balance-hint">填写实际余额，最多两位小数。无需填写银行卡号。</p>
+      <p id="form-error" role="alert"></p>
+      <div class="form-actions"><button type="button" id="cancel-account">取消</button><button class="primary" type="submit">保存账户</button></div>
+    </form>
+  </dialog>
+  <dialog id="expense-dialog" aria-labelledby="expense-title">
+    <form id="expense-form">
+      <h2 id="expense-title">记一笔生活的小账</h2>
+      <label>付款账户<select id="expense-account" required></select></label>
+      <label>支出金额（元）<input id="expense-amount" inputmode="decimal" required placeholder="例如：25.50"></label>
+      <label>分类<select id="expense-category" required><option>🍚 餐饮</option><option>🚌 交通</option><option>🛍️ 购物</option><option>🏠 居住</option><option>🎮 娱乐</option><option>💊 医疗</option><option>📚 学习</option><option>💸 还款</option><option>🌷 其他</option></select></label>
+      <label>日期<input id="expense-date" type="date" required></label><label>关联支出预算<select id="expense-budget" required></select></label><p id="expense-budget-hint" class="form-hint"></p>
+      <label>备注（选填）<input id="expense-note" maxlength="120" placeholder="这一笔花在了哪里？"></label>
+      <label>关联还款负债（选填）<select id="expense-debt"><option value="">不关联负债</option></select></label>
+<label id="expense-reduction-label" hidden>本次减少欠款（元）<input id="expense-reduction" inputmode="decimal" placeholder="默认等于支出金额"></label>
+<p class="form-hint">关联负债后会同时减少欠款。若含未记入负债的利息，只填写本次实际减少的欠款部分；还款仍按你的设置计入支出和预算。</p>
+<label>照片附件（选填）<input id="expense-photo" type="file" accept="image/jpeg,image/png,image/webp"></label><label class="check-label"><input id="expense-remove-photo" type="checkbox">移除已有照片</label>
+<p class="form-hint">每笔可保存一张照片，会自动压缩，仅保存在本机。</p><p id="expense-error" role="alert"></p>
+      <div class="form-actions"><button type="button" id="cancel-expense">取消</button><button class="primary" type="submit">保存支出</button></div>
+    </form>
+  </dialog>
+  <dialog id="goal-dialog" aria-labelledby="goal-dialog-title">
+    <form id="goal-form">
+      <h2 id="goal-dialog-title">选择关联账户</h2>
+      <label>目标名称<input id="goal-name" maxlength="60" required placeholder="例如：旅行小心愿"></label>
+      <label>目标金额（元）<input id="goal-amount" inputmode="decimal" required placeholder="例如：3000"></label>
+      <label>目标日期<input id="goal-date" type="date" required></label>
+      <p class="form-hint">可以选择多个账户，它们的余额会合计到这个目标。</p>
+      <div id="goal-account-options"></div>
+      <p id="goal-error" role="alert"></p>
+      <div class="form-actions"><button id="cancel-goal" type="button">取消</button><button class="primary" type="submit">保存选择</button></div>
+    </form>
+  </dialog>
+  <dialog id="debt-dialog" aria-labelledby="debt-dialog-title"><form id="debt-form">
+    <h2 id="debt-dialog-title">添加负债</h2>
+    <label>负债类型<select id="debt-type" required><option value="huabei">花呗</option><option value="credit">信用卡</option><option value="loan">贷款</option></select></label>
+    <label>名称<input id="debt-name" maxlength="60" required value="花呗" placeholder="例如：交行助学贷"></label>
+    <label>待还金额（元）<input id="debt-amount" inputmode="decimal" required placeholder="填写尚未偿还的金额"></label>
+    <label>还款日期<input id="debt-date" type="date" required></label>
+    <p class="form-hint">填写本次登记欠款的应还日期。分期欠款可以分开添加；金额包含多少利息，由你按账单填写。</p>
+    <p id="debt-error" role="alert"></p>
+    <div class="form-actions"><button type="button" id="cancel-debt">取消</button><button type="submit" class="primary">保存负债</button></div>
+  </form></dialog>
+  <dialog id="movement-dialog" aria-labelledby="movement-title"><form id="movement-form">
+    <h2 id="movement-title">记收入</h2>
+    <label><span id="movement-account-label">收款账户</span><select id="movement-account" required></select></label>
+    <label id="movement-destination-label">转入账户<select id="movement-destination"></select></label>
+    <label>金额（元）<input id="movement-amount" inputmode="decimal" required placeholder="例如：100.00"></label>
+    <label id="movement-category-label">收入分类<select id="movement-category"><option>💼 工资</option><option>🎁 红包</option><option>🌱 收益</option><option>🌷 其他收入</option></select></label>
+    <label>日期<input id="movement-date" type="date" required></label>
+    <label>备注（选填）<input id="movement-note" maxlength="120"></label>
+    <label>照片附件（选填）<input id="movement-photo" type="file" accept="image/jpeg,image/png,image/webp"></label><label class="check-label"><input id="movement-remove-photo" type="checkbox">移除已有照片</label><p id="movement-error" role="alert"></p>
+    <div class="form-actions"><button type="button" id="cancel-movement">取消</button><button type="submit" class="primary">保存</button></div>
+  </form></dialog>
+  <dialog id="budget-dialog" aria-labelledby="budget-dialog-title"><form id="budget-form">
+    <h2 id="budget-dialog-title">添加预算项目</h2>
+    <label>类型<select id="budget-type" required><option value="income">预算收入</option><option value="expense">预算支出</option></select></label>
+    <label>项目名称<input id="budget-name" maxlength="60" required placeholder="例如：工资、生活费、吃饭、交通、水电、娱乐" list="budget-name-suggestions"></label>
+    <datalist id="budget-name-suggestions"><option value="工资"><option value="生活费"><option value="吃饭"><option value="交通"><option value="水电"><option value="娱乐"></datalist>
+    <label>预算金额（元）<input id="budget-amount" inputmode="decimal" required placeholder="例如：1000"></label>
+    <label id="budget-date-label">预计收入日期（选填）<input id="budget-date" type="date"></label>
+    <p id="budget-form-month" class="form-hint"></p>
+    <p id="budget-error" role="alert"></p>
+    <div class="form-actions"><button type="button" id="cancel-budget">取消</button><button type="submit" class="primary">保存项目</button></div>
+  </form></dialog>
+<dialog id="link-budget-dialog" aria-labelledby="link-budget-title"><form id="link-budget-form"><h2 id="link-budget-title">关联支出预算</h2><label>预算项目<select id="link-budget-select" required></select></label><p id="link-budget-error" role="alert"></p><div class="form-actions"><button id="cancel-link-budget" type="button">取消</button><button type="submit" class="primary">保存关联</button></div></form></dialog>
+<dialog id="categories-dialog" aria-labelledby="categories-title"><h2 id="categories-title">分类与图标</h2><p class="form-hint">修改或移除分类不改动历史记录。图标可填写一个表情符号。</p><div id="categories-list"></div>
+<form id="category-form"><h3 id="category-form-title">添加分类</h3><label>收支类型<select id="category-type"><option value="expense">支出</option><option value="income">收入</option></select></label><label>图标<input id="category-icon" required maxlength="16" value="🌷"></label><label>分类名称<input id="category-name" required maxlength="30"></label><p id="category-error" role="alert"></p><div class="form-actions"><button id="reset-category" type="button">清空编辑</button><button type="submit" class="primary">保存分类</button></div></form><div class="form-actions"><button id="close-categories" type="button">完成</button></div></dialog>
+<dialog id="import-dialog" aria-labelledby="import-title"><h2 id="import-title">确认导入备份</h2><p id="import-summary"></p><p class="form-hint">导入会覆盖当前账本。请先下载当前账本备份，再确认覆盖。</p><div class="form-actions"><button id="cancel-import" type="button">取消</button><button id="backup-before-import" type="button">先备份当前账本</button><button id="confirm-import" type="button" disabled>覆盖并导入</button></div><p id="import-error" role="alert"></p></dialog>
+<dialog id="photo-dialog" aria-label="记录照片"><img id="record-photo-preview" alt="记账照片"><div class="form-actions"><button id="close-photo" type="button">关闭</button></div></dialog>
+<script src="core.js"></script><script src="storage.js"></script><script src="app.js"></script><script src="extras.js"></script>
+</body>
+</html>
+
+
+
+
+

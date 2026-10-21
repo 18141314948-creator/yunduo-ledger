@@ -118,9 +118,10 @@
 <form id="category-form"><h3 id="category-form-title">添加分类</h3><label>收支类型<select id="category-type"><option value="expense">支出</option><option value="income">收入</option></select></label><label>图标<input id="category-icon" required maxlength="16" value="🌷"></label><label>分类名称<input id="category-name" required maxlength="30"></label><p id="category-error" role="alert"></p><div class="form-actions"><button id="reset-category" type="button">清空编辑</button><button type="submit" class="primary">保存分类</button></div></form><div class="form-actions"><button id="close-categories" type="button">完成</button></div></dialog>
 <dialog id="import-dialog" aria-labelledby="import-title"><h2 id="import-title">确认导入备份</h2><p id="import-summary"></p><p class="form-hint">导入会覆盖当前账本。请先下载当前账本备份，再确认覆盖。</p><div class="form-actions"><button id="cancel-import" type="button">取消</button><button id="backup-before-import" type="button">先备份当前账本</button><button id="confirm-import" type="button" disabled>覆盖并导入</button></div><p id="import-error" role="alert"></p></dialog>
 <dialog id="photo-dialog" aria-label="记录照片"><img id="record-photo-preview" alt="记账照片"><div class="form-actions"><button id="close-photo" type="button">关闭</button></div></dialog>
-<script src="core.js"></script><script src="storage.js"></script><script src="app.js"></script><script src="extras.js"></script>
+<script src="core.js"></script><script src="storage.js"></script><script src="app.js"></script><script src="extras.js"></script><script src="analytics.js"></script><script src="navigation.js"></script>
 </body>
 </html>
+
 
 
 
